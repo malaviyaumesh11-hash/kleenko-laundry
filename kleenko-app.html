@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KleenKo — Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --black:#0E0E0E;--gold:#C9961A;--gold2:#E8B830;
+  --white:#FFFFFF;--bg:#F5F4F0;--card:#FFFFFF;
+  --border:#EBEBEB;--muted:#9A9A9A;--green:#2D9E6B;
+  --red:#E05252;--blue:#3B7FE8;--orange:#E87B3B;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);min-height:100vh;color:var(--black);}
+
+/* ── NAV ── */
+.nav{background:var(--black);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{width:32px;height:32px;}
+.nav-name{font-size:18px;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.nav-name span{color:var(--gold);}
+.nav-tabs{display:flex;gap:4px;}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;color:#888;cursor:pointer;transition:all 0.2s;border:none;background:none;}
+.nav-tab.active{background:rgba(201,150,26,0.15);color:var(--gold2);}
+.nav-tab:hover:not(.active){color:#ccc;}
+.nav-right{font-size:11px;color:#555;letter-spacing:0.5px;}
+
+/* ── VIEWS ── */
+.view{display:none;padding:24px;max-width:1100px;margin:0 auto;}
+.view.active{display:block;}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:24px;}
+.page-title{font-size:24px;font-weight:800;letter-spacing:-0.5px;color:var(--black);}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* ── STAT CARDS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card);border-radius:12px;padding:18px;border:1px solid var(--border);}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.stat-val{font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--black);}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:var(--green);}
+.stat-change{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-change.up{color:var(--green);}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.card-title{font-size:13px;font-weight:700;letter-spacing:-0.2px;}
+.card-action{font-size:11px;color:var(--gold);font-weight:600;cursor:pointer;border:none;background:none;}
+.card-body{padding:16px 20px;}
+
+/* ── ORDER ROW ── */
+.order-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #F8F8F8;}
+.order-row:last-child{border-bottom:none;padding-bottom:0;}
+.order-row:first-child{padding-top:0;}
+.order-avatar{width:36px;height:36px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--gold);flex-shrink:0;}
+.order-info{flex:1;}
+.order-name{font-size:13px;font-weight:700;color:var(--black);}
+.order-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.order-right{text-align:right;}
+.order-amount{font-size:13px;font-weight:700;color:var(--black);}
+.badge{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;}
+.badge.pickup{background:#FFF3E0;color:#E87B3B;}
+.badge.washing{background:#E3F2FD;color:var(--blue);}
+.badge.delivered{background:#E8F5E9;color:var(--green);}
+.badge.pending{background:#FFF8E1;color:#F9A825;}
+.badge.overdue{background:#FFEBEE;color:var(--red);}
+.badge.monthly{background:rgba(201,150,26,0.12);color:var(--gold);}
+.badge.peruse{background:#F3F3F3;color:#666;}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{margin-top:6px;}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
+.progress-track{height:6px;background:#F0F0F0;border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;background:var(--gold);transition:width 0.5s ease;}
+.progress-fill.red{background:var(--red);}
+.progress-fill.green{background:var(--green);}
+
+/* ── CUSTOMER TABLE ── */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:2px solid var(--border);}
+th{text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 14px;}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid #F8F8F8;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#FAFAFA;}
+.td-name{font-weight:700;color:var(--black);}
+.td-phone{color:var(--muted);font-size:12px;}
+
+/* ── KG MINI BAR ── */
+.kg-bar{display:flex;align-items:center;gap:8px;}
+.kg-track{flex:1;height:5px;background:#F0F0F0;border-radius:3px;overflow:hidden;}
+.kg-fill{height:100%;border-radius:3px;}
+.kg-text{font-size:11px;font-weight:600;white-space:nowrap;}
+
+/* ── ADD ORDER FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:600;color:var(--black);letter-spacing:0.3px;}
+input,select,textarea{
+  border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--black);
+  background:var(--white);outline:none;transition:border 0.2s;
+}
+input:focus,select:focus{border-color:var(--gold);}
+.btn{border:none;border-radius:8px;padding:11px 20px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:var(--black);color:var(--white);}
+.btn-primary:hover{background:#333;}
+.btn-gold{background:var(--gold);color:var(--white);}
+.btn-gold:hover{background:var(--gold2);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--black);}
+.btn-ghost:hover{border-color:var(--black);}
+.btn-sm{padding:7px 14px;font-size:11px;}
+.btn-row{display:flex;gap:10px;margin-top:16px;}
+
+/* ── CUSTOMER PORTAL ── */
+.portal-hero{background:var(--black);border-radius:16px;padding:28px 28px 24px;margin-bottom:20px;position:relative;overflow:hidden;}
+.portal-hero::before{content:'KK';position:absolute;right:-10px;top:-20px;font-size:120px;font-weight:800;color:rgba(255,255,255,0.03);letter-spacing:-6px;}
+.portal-greeting{font-size:13px;color:#666;margin-bottom:4px;}
+.portal-name{font-size:26px;font-weight:800;color:var(--white);letter-spacing:-0.5px;margin-bottom:16px;}
+.portal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.portal-stat{background:rgba(255,255,255,0.05);border-radius:10px;padding:14px;}
+.ps-label{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#555;margin-bottom:6px;}
+.ps-val{font-size:22px;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.ps-val.gold{color:var(--gold2);}
+.ps-sub{font-size:10px;color:#555;margin-top:2px;}
+
+/* PLAN CARD */
+.plan-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;margin-bottom:16px;}
+.plan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.plan-name{font-size:14px;font-weight:800;color:var(--black);}
+.plan-price{font-size:20px;font-weight:800;color:var(--gold);letter-spacing:-0.5px;}
+.plan-price span{font-size:11px;color:var(--muted);font-weight:400;}
+.plan-bars{display:flex;flex-direction:column;gap:10px;}
+.plan-bar-row{}
+.pbar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;}
+.pbar-title{font-weight:600;color:var(--black);}
+.pbar-count{color:var(--muted);}
+.pbar-track{height:8px;background:#F0F0F0;border-radius:4px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:4px;background:var(--gold);transition:width 0.6s ease;}
+.pbar-fill.danger{background:var(--red);}
+.pbar-fill.safe{background:var(--green);}
+
+/* ORDER HISTORY TABLE */
+.history-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F8F8F8;}
+.history-row:last-child{border-bottom:none;}
+.history-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.history-icon.wash{background:#E3F2FD;}
+.history-icon.deliver{background:#E8F5E9;}
+.history-icon.pickup{background:#FFF3E0;}
+.history-info{flex:1;}
+.history-title{font-size:13px;font-weight:700;color:var(--black);}
+.history-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.history-right{text-align:right;}
+.history-kg{font-size:13px;font-weight:700;color:var(--black);}
+.history-status{font-size:10px;margin-top:2px;}
+
+/* NOTIFY BANNER */
+.notify{background:#FFFBEC;border:1px solid #FFE082;border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:16px;}
+.notify-icon{font-size:16px;flex-shrink:0;}
+.notify-text{font-size:12px;color:#7A5000;line-height:1.5;}
+.notify-text strong{font-weight:700;}
+
+/* SEARCH */
+.search-bar{display:flex;gap:10px;margin-bottom:16px;}
+.search-bar input{flex:1;}
+
+/* MODAL OVERLAY */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:500px;max-width:90vw;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px;letter-spacing:-0.3px;}
+.modal-close{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.login-card{background:var(--white);border-radius:16px;padding:40px;width:380px;box-shadow:0 8px 40px rgba(0,0,0,0.1);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-brand{font-size:28px;font-weight:800;letter-spacing:-1px;}
+.login-brand span{color:var(--gold);}
+.login-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+.login-tabs{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;}
+.login-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.login-tab.active{background:var(--black);color:var(--white);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:var(--white);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all 0.3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-text{font-size:13px;}
+
+/* responsive */
+@media(max-width:700px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .two-col,.three-col{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .portal-stats{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-brand">Kleen<span>Ko</span></div>
+      <div class="login-sub">Laundry Management System</div>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="setLoginType('owner')">Owner Login</button>
+      <button class="login-tab" onclick="setLoginType('customer')">Customer Portal</button>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label id="loginLabel">Phone / Username</label>
+      <input type="text" id="loginUser" placeholder="Enter phone number">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Password / PIN</label>
+      <input type="password" id="loginPass" placeholder="Enter PIN">
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="doLogin()">Login →</button>
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:var(--muted);">
+      Owner: admin / 1234 &nbsp;|&nbsp; Customer: 9999 / 1234
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════ -->
+<div id="mainApp" style="display:none;">
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <svg class="nav-logo" viewBox="0 0 72 72" fill="none">
+      <circle cx="36" cy="36" r="34" fill="#1A1A1A"/>
+      <path d="M36 14 C48.5 14 58 23.5 58 36 C58 48.5 48.5 58 36 58" stroke="#C9961A" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <polygon points="58,31 63,36 58,41" fill="#C9961A"/>
+      <rect x="29" y="24" width="3.5" height="24" rx="1.75" fill="#FFFFFF"/>
+      <path d="M32.5 36 L43 24.5" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M32.5 36 L44 47" stroke="#C9961A" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="52" cy="21" r="3" fill="#E8B830"/>
+    </svg>
+    <div class="nav-name">Kleen<span>Ko</span></div>
+  </div>
+  <div class="nav-tabs" id="navTabs"></div>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<!-- VIEWS CONTAINER -->
+<div id="viewsContainer"></div>
+
+</div><!-- end mainApp -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// DATA STORE
+// ════════════════════════════════════════════
+const DB = {
+  customers: [
+    { id:1, name:"Rahul Shah", phone:"9106062508", area:"Gurukul", plan:"monthly", planStart:"2026-06-01", kgUsed:7, pickupsUsed:3, kgLimit:12, pickupLimit:4, balance:0, active:true },
+    { id:2, name:"Priya Mehta", phone:"9898123456", area:"Navrangpura", plan:"monthly_plus", planStart:"2026-06-01", kgUsed:5, pickupsUsed:2, kgLimit:20, pickupLimit:6, balance:0, active:true },
+    { id:3, name:"Arjun Patel", phone:"9876543210", area:"Thaltej", plan:"peruse", planStart:null, kgUsed:0, pickupsUsed:0, kgLimit:0, pickupLimit:0, balance:250, active:true },
+    { id:4, name:"Sneha Joshi", phone:"9712345678", area:"Memnagar", plan:"monthly", planStart:"2026-06-03", kgUsed:11, pickupsUsed:4, kgLimit:12, pickupLimit:4, balance:0, active:true },
+    { id:5, name:"Karan Desai", phone:"9988776655", area:"Satellite", plan:"peruse", planStart:null, kgUsed:0, pickupsUsed:0, kgLimit:0, pickupLimit:0, balance:0, active:true },
+  ],
+  orders: [
+    { id:101, customerId:1, type:"Wash+Fold", kg:3, status:"delivered", pickupDate:"2026-06-01", deliveryDate:"2026-06-02", amount:150, note:"" },
+    { id:102, customerId:2, type:"Wash+Iron", kg:2.5, status:"delivered", pickupDate:"2026-06-02", deliveryDate:"2026-06-03", amount:175, note:"" },
+    { id:103, customerId:1, type:"Wash+Fold", kg:4, status:"washing", pickupDate:"2026-06-04", deliveryDate:"2026-06-05", amount:200, note:"" },
+    { id:104, customerId:3, type:"Wash+Iron", kg:2, status:"pickup", pickupDate:"2026-06-06", deliveryDate:"2026-06-07", amount:140, note:"2 shirts extra care" },
+    { id:105, customerId:4, type:"Wash+Fold", kg:5, status:"delivered", pickupDate:"2026-06-03", deliveryDate:"2026-06-04", amount:250, note:"" },
+    { id:106, customerId:5, type:"Wash+Fold", kg:3, status:"pending", pickupDate:"2026-06-07", deliveryDate:"2026-06-08", amount:150, note:"Ring the bell" },
+    { id:107, customerId:4, type:"Wash+Fold", kg:6, status:"delivered", pickupDate:"2026-06-05", deliveryDate:"2026-06-06", amount:300, note:"" },
+    { id:108, customerId:2, type:"Wash+Fold", kg:2.5, status:"pickup", pickupDate:"2026-06-06", deliveryDate:"2026-06-07", amount:125, note:"" },
+  ]
+};
+
+let currentUser = null;
+let loginType = 'owner';
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+function setLoginType(t){
+  loginType=t;
+  document.querySelectorAll('.login-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='owner'?0:1)));
+  document.getElementById('loginLabel').textContent = t==='owner' ? 'Username' : 'Your Phone Number';
+}
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  if(loginType==='owner'){
+    if(u==='admin'&&p==='1234'){ startApp('owner',{name:'Owner',id:0}); }
+    else showToast('❌ Wrong credentials');
+  } else {
+    const cust = DB.customers.find(c=>c.phone===u);
+    if(cust&&p==='1234'){ startApp('customer',cust); }
+    else showToast('❌ Phone not found or wrong PIN');
+  }
+}
+
+function startApp(role, user){
+  currentUser={role,...user};
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  buildNav(role);
+  if(role==='owner') renderOwnerDashboard();
+  else renderCustomerPortal();
+}
+
+function logout(){
+  currentUser=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+// ════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════
+function buildNav(role){
+  const tabsEl=document.getElementById('navTabs');
+  const rightEl=document.getElementById('navRight');
+  if(role==='owner'){
+    tabsEl.innerHTML=`
+      <button class="nav-tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
+      <button class="nav-tab" onclick="switchTab('customers',this)">Customers</button>
+      <button class="nav-tab" onclick="switchTab('orders',this)">Orders</button>
+      <button class="nav-tab" onclick="switchTab('addOrder',this)">+ New Order</button>`;
+  } else {
+    tabsEl.innerHTML=`
+      <button class="nav-tab active" onclick="switchTab('portal',this)">My Plan</button>
+      <button class="nav-tab" onclick="switchTab('history',this)">History</button>`;
+  }
+  rightEl.innerHTML=`<button class="btn btn-sm" style="background:rgba(255,255,255,0.08);color:#888;border:none;cursor:pointer;border-radius:6px;padding:6px 12px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;" onclick="logout()">Logout</button>`;
+}
+
+function switchTab(view, el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(view==='dashboard') renderOwnerDashboard();
+  else if(view==='customers') renderCustomers();
+  else if(view==='orders') renderOrders();
+  else if(view==='addOrder') renderAddOrder();
+  else if(view==='portal') renderCustomerPortal();
+  else if(view==='history') renderHistory();
+}
+
+function setView(html){
+  document.getElementById('viewsContainer').innerHTML=`<div class="view active">${html}</div>`;
+}
+
+// ════════════════════════════════════════════
+// OWNER — DASHBOARD
+// ════════════════════════════════════════════
+function renderOwnerDashboard(){
+  const totalRevenue = DB.orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.amount,0);
+  const activeOrders = DB.orders.filter(o=>['pickup','washing','pending'].includes(o.status)).length;
+  const monthlyCustomers = DB.customers.filter(c=>c.plan!=='peruse').length;
+  const todayPickups = DB.orders.filter(o=>o.pickupDate==='2026-06-06').length;
+
+  const recentOrders = [...DB.orders].sort((a,b)=>b.id-a.id).slice(0,5);
+  const almostFull = DB.customers.filter(c=>c.plan==='monthly'&&c.kgUsed/c.kgLimit>0.8);
+
+  setView(`
+    <div class="page-header">
+      <div class="page-title">Good morning, Owner 👋</div>
+      <div class="page-sub">Here's what's happening with KleenKo today — June 6, 2026</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-val gold">₹${totalRevenue.toLocaleString()}</div>
+        <div class="stat-change up">↑ This month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Orders</div>
+        <div class="stat-val">${activeOrders}</div>
+        <div class="stat-change">Pickup / Washing / Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Monthly Subscribers</div>
+        <div class="stat-val green">${monthlyCustomers}</div>
+        <div class="stat-change">Out of ${DB.customers.length} total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Today's Pickups</div>
+        <div class="stat-val">${todayPickups}</div>
+        <div class="stat-change">Scheduled for Jun 6</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Orders</div>
+          <button class="card-action" onclick="document.querySelector('.nav-tab:nth-child(3)').click()">View all</button>
+        </div>
+        <div class="card-body">
+          ${recentOrders.map(o=>{
+            const c=DB.customers.find(x=>x.id===o.customerId);
+            return `<div class="order-row">
+              <div class="order-avatar">${c.name[0]}</div>
+              <div class="order-info">
+                <div class="order-name">${c.name}</div>
+                <div class="order-meta">${o.type} · ${o.kg}kg · ${o.pickupDate}</div>
+              </div>
+              <div class="order-right">
+                <div class="order-amount">₹${o.amount}</div>
+                <div class="badge ${o.status}" style="margin-top:4px;">${o.status.toUpperCase()}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚠️ Plan Limit Alerts</div>
+          <div style="font-size:11px;color:var(--muted);">${almostFull.length} customer${almostFull.length!==1?'s':''}</div>
+        </div>
+        <div class="card-body">
+          ${almostFull.length===0?`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">All customers within limits</div></div>`:''}
+          ${almostFull.map(c=>`
+            <div style="margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <div style="font-size:13px;font-weight:700;">${c.name}</div>
+                <div class="badge overdue">Near Limit</div>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-label"><span>KG Used</span><span>${c.kgUsed}/${c.kgLimit}kg</span></div>
+                <div class="progress-track"><div class="progress-fill red" style="width:${(c.kgUsed/c.kgLimit*100)}%"></div></div>
+              </div>
+              <div class="progress-wrap" style="margin-top:6px;">
+                <div class="progress-label"><span>Pickups</span><span>${c.pickupsUsed}/${c.pickupLimit}</span></div>
+                <div class="progress-track"><div class="progress-fill red" style="width:${(c.pickupsUsed/c.pickupLimit*100)}%"></div></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">All Customers — Quick View</div>
+        <button class="card-action" onclick="document.querySelector('.nav-tab:nth-child(2)').click()">Manage all</button>
+      </div>
+      <div class="card-body">
+        <div class="three-col">
+          ${DB.customers.map(c=>`
+            <div style="border:1px solid var(--border);border-radius:10px;padding:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="font-size:13px;font-weight:700;">${c.name}</div>
+                <div class="badge ${c.plan==='peruse'?'peruse':'monthly'}">${c.plan==='peruse'?'Per Use':c.plan==='monthly_plus'?'Plus':'Monthly'}</div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">📍 ${c.area} · 📞 ${c.phone}</div>
+              ${c.plan!=='peruse'?`
+                <div class="progress-wrap">
+                  <div class="progress-label"><span>KG</span><span>${c.kgUsed}/${c.kgLimit}kg</span></div>
+                  <div class="progress-track"><div class="progress-fill ${c.kgUsed/c.kgLimit>0.8?'red':'green'}" style="width:${Math.min(c.kgUsed/c.kgLimit*100,100)}%"></div></div>
+                </div>
+                <div class="progress-wrap" style="margin-top:6px;">
+                  <div class="progress-label"><span>Pickups</span><span>${c.pickupsUsed}/${c.pickupLimit}</span></div>
+                  <div class="progress-track"><div class="progress-fill ${c.pickupsUsed/c.pickupLimit>0.8?'red':'green'}" style="width:${Math.min(c.pickupsUsed/c.pickupLimit*100,100)}%"></div></div>
+                </div>
+              `:c.balance>0?`<div style="font-size:12px;color:var(--green);font-weight:600;">Balance: ₹${c.balance}</div>`:`<div style="font-size:12px;color:var(--muted);">Pay per use</div>`}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════
+// OWNER — CUSTOMERS
+// ════════════════════════════════════════════
+function renderCustomers(filter=''){
+  const list = filter ? DB.customers.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase())||c.phone.includes(filter)) : DB.customers;
+  setView(`
+    <div class="page-header">
+      <div class="page-title">Customers</div>
+      <div class="page-sub">${DB.customers.length} registered customers</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search by name or phone..." oninput="renderCustomers(this.value)" value="${filter}">
+      <button class="btn btn-gold" onclick="openAddCustomer()">+ Add Customer</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Customer</th><th>Area</th><th>Plan</th><th>KG Remaining</th><th>Pickups Left</th><th>Renewal</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${list.map(c=>{
+              const kgLeft = c.plan!=='peruse'?c.kgLimit-c.kgUsed:'-';
+              const pkLeft = c.plan!=='peruse'?c.pickupLimit-c.pickupsUsed:'-';
+              const kgPct = c.plan!=='peruse'?Math.min(c.kgUsed/c.kgLimit*100,100):0;
+              const renewDate = c.planStart ? new Date(new Date(c.planStart).getTime()+30*864e5).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '-';
+              return `<tr>
+                <td>
+                  <div class="td-name">${c.name}</div>
+                  <div class="td-phone">${c.phone}</div>
+                </td>
+                <td style="font-size:12px;">${c.area}</td>
+                <td><div class="badge ${c.plan==='peruse'?'peruse':'monthly'}">${c.plan==='peruse'?'Per Use':c.plan==='monthly_plus'?'Monthly Plus':'Monthly Basic'}</div></td>
+                <td>
+                  ${c.plan!=='peruse'?`
+                    <div class="kg-bar">
+                      <div class="kg-track"><div class="kg-fill" style="width:${kgPct}%;background:${kgPct>80?'var(--red)':'var(--green)'}"></div></div>
+                      <div class="kg-text" style="color:${kgPct>80?'var(--red)':'var(--black)'}">${kgLeft}kg left</div>
+                    </div>`:'-'}
+                </td>
+                <td style="font-size:13px;font-weight:700;color:${pkLeft!=='-'&&pkLeft===0?'var(--red)':pkLeft!=='-'&&pkLeft<=1?'var(--orange)':'var(--black)'}">
+                  ${pkLeft!=='-'?pkLeft+' left':c.balance>0?'₹'+c.balance+' bal':'-'}
+                </td>
+                <td style="font-size:12px;color:var(--muted);">${renewDate}</td>
+                <td>
+                  <button class="btn btn-sm btn-ghost" onclick="openCustomerDetail(${c.id})">View</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════
+// OWNER — ORDERS
+// ════════════════════════════════════════════
+function renderOrders(filterStatus='all'){
+  const filtered = filterStatus==='all' ? DB.orders : DB.orders.filter(o=>o.status===filterStatus);
+  const sorted = [...filtered].sort((a,b)=>b.id-a.id);
+  setView(`
+    <div class="page-header">
+      <div class="page-title">All Orders</div>
+      <div class="page-sub">${DB.orders.length} total orders</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      ${['all','pending','pickup','washing','delivered'].map(s=>`
+        <button class="btn btn-sm ${filterStatus===s?'btn-primary':'btn-ghost'}" onclick="renderOrders('${s}')">${s==='all'?'All':s.charAt(0).toUpperCase()+s.slice(1)}</button>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Customer</th><th>Service</th><th>KG</th><th>Amount</th><th>Pickup</th><th>Delivery</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            ${sorted.map(o=>{
+              const c=DB.customers.find(x=>x.id===o.customerId);
+              return `<tr>
+                <td style="color:var(--muted);font-size:12px;">#${o.id}</td>
+                <td><div class="td-name">${c.name}</div><div class="td-phone">${c.area}</div></td>
+                <td style="font-size:12px;">${o.type}</td>
+                <td style="font-weight:700;">${o.kg}kg</td>
+                <td style="font-weight:700;">₹${o.amount}</td>
+                <td style="font-size:12px;color:var(--muted);">${o.pickupDate}</td>
+                <td style="font-size:12px;color:var(--muted);">${o.deliveryDate}</td>
+                <td><div class="badge ${o.status}">${o.status.toUpperCase()}</div></td>
+                <td>
+                  ${o.status!=='delivered'?`<button class="btn btn-sm btn-gold" onclick="advanceOrder(${o.id})">Advance →</button>`:`<span style="font-size:11px;color:var(--green);">✓ Done</span>`}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+function advanceOrder(id){
+  const o=DB.orders.find(x=>x.id===id);
+  const steps=['pending','pickup','washing','delivered'];
+  const i=steps.indexOf(o.status);
+  if(i<steps.length-1){
+    o.status=steps[i+1];
+    // update kg on delivered
+    if(o.status==='delivered'){
+      const c=DB.customers.find(x=>x.id===o.customerId);
+      if(c.plan!=='peruse') c.kgUsed=Math.min(c.kgUsed+o.kg,c.kgLimit);
+    }
+    showToast(`✅ Order #${id} → ${o.status.toUpperCase()}`);
+    renderOrders();
+  }
+}
+
+// ════════════════════════════════════════════
+// OWNER — ADD ORDER
+// ════════════════════════════════════════════
+function renderAddOrder(){
+  setView(`
+    <div class="page-header">
+      <div class="page-title">New Order</div>
+      <div class="page-sub">Create a pickup order for a customer</div>
+    </div>
+    <div style="max-width:560px;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Order Details</div></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Customer</label>
+              <select id="oc" onchange="checkPlanLimit()">
+                <option value="">Select customer...</option>
+                ${DB.customers.map(c=>`<option value="${c.id}">${c.name} — ${c.plan==='peruse'?'Per Use':c.plan==='monthly_plus'?'Monthly Plus':'Monthly Basic'} (${c.area})</option>`).join('')}
+              </select>
+            </div>
+            <div id="planAlert"></div>
+            <div class="form-group">
+              <label>Service Type</label>
+              <select id="otype">
+                <option value="Wash+Fold">Wash + Fold (₹50/kg)</option>
+                <option value="Wash+Iron">Wash + Iron (₹70/kg)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Weight (kg)</label>
+              <input type="number" id="okg" placeholder="e.g. 3.5" step="0.5" min="0.5" oninput="calcAmount()">
+            </div>
+            <div class="form-group">
+              <label>Pickup Date</label>
+              <input type="date" id="opickup" value="2026-06-06">
+            </div>
+            <div class="form-group">
+              <label>Delivery Date</label>
+              <input type="date" id="odeliver" value="2026-06-07">
+            </div>
+            <div class="form-group full">
+              <label>Note (optional)</label>
+              <input type="text" id="onote" placeholder="e.g. Ring the bell, handle shirt carefully...">
+            </div>
+            <div class="form-group full" style="background:#F8F8F8;border-radius:8px;padding:14px;border:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:13px;font-weight:600;color:var(--muted);">Estimated Amount</div>
+                <div style="font-size:24px;font-weight:800;color:var(--black);" id="calcAmt">₹0</div>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="submitOrder()">Create Order →</button>
+            <button class="btn btn-ghost" onclick="renderOwnerDashboard()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function calcAmount(){
+  const kg=parseFloat(document.getElementById('okg')?.value||0);
+  const type=document.getElementById('otype')?.value||'Wash+Fold';
+  const rate=type==='Wash+Iron'?70:50;
+  const el=document.getElementById('calcAmt');
+  if(el) el.textContent=`₹${Math.round(kg*rate)}`;
+}
+
+function checkPlanLimit(){
+  const cid=parseInt(document.getElementById('oc').value);
+  const c=DB.customers.find(x=>x.id===cid);
+  const el=document.getElementById('planAlert');
+  if(!c||!el) return;
+  if(c.plan==='peruse'){el.innerHTML='';return;}
+  const kgLeft=c.kgLimit-c.kgUsed;
+  const pkLeft=c.pickupLimit-c.pickupsUsed;
+  if(kgLeft<=0||pkLeft<=0){
+    el.style.gridColumn='1/-1';
+    el.innerHTML=`<div class="notify"><div class="notify-icon">⚠️</div><div class="notify-text"><strong>Plan limit reached!</strong> ${kgLeft<=0?'KG limit':'Pickup limit'} exhausted. Extra charges apply.</div></div>`;
+  } else {
+    el.style.gridColumn='1/-1';
+    el.innerHTML=`<div class="notify" style="background:#F0FFF4;border-color:#B2DFDB;"><div class="notify-icon">✅</div><div class="notify-text" style="color:#1B5E20;"><strong>${c.name}</strong> — ${kgLeft}kg remaining · ${pkLeft} pickups left this month.</div></div>`;
+  }
+}
+
+function submitOrder(){
+  const cid=parseInt(document.getElementById('oc').value);
+  const type=document.getElementById('otype').value;
+  const kg=parseFloat(document.getElementById('okg').value);
+  const pickup=document.getElementById('opickup').value;
+  const deliver=document.getElementById('odeliver').value;
+  const note=document.getElementById('onote').value;
+  if(!cid||!kg||!pickup||!deliver){showToast('❌ Fill all required fields');return;}
+  const c=DB.customers.find(x=>x.id===cid);
+  const rate=type==='Wash+Iron'?70:50;
+  const extraKgRate=type==='Wash+Iron'?65:45;
+  let amount=0;
+  if(c.plan!=='peruse'){
+    const kgLeft=c.kgLimit-c.kgUsed;
+    const pkLeft=c.pickupLimit-c.pickupsUsed;
+    if(pkLeft<=0) amount=Math.round(kg*rate*1.1);
+    else if(kgLeft<=0) amount=Math.round(kg*extraKgRate);
+    else if(kg>kgLeft) amount=Math.round((kgLeft*0)+(kg-kgLeft)*extraKgRate);
+    else amount=0;
+    if(pkLeft>0) c.pickupsUsed++;
+  } else {
+    amount=Math.round(kg*rate);
+  }
+  const newOrder={
+    id: Math.max(...DB.orders.map(o=>o.id))+1,
+    customerId:cid, type, kg, status:'pending',
+    pickupDate:pickup, deliveryDate:deliver, amount, note
+  };
+  DB.orders.push(newOrder);
+  showToast(`✅ Order #${newOrder.id} created for ${c.name}`);
+  renderOrders();
+}
+
+// ════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════
+function openCustomerDetail(id){
+  const c=DB.customers.find(x=>x.id===id);
+  const orders=DB.orders.filter(o=>o.customerId===id);
+  const html=`
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">${c.name}</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="badge ${c.plan==='peruse'?'peruse':'monthly'}">${c.plan==='peruse'?'Per Use':c.plan==='monthly_plus'?'Plus':'Monthly'}</div>
+      <span style="font-size:12px;color:var(--muted);">📍 ${c.area}</span>
+      <span style="font-size:12px;color:var(--muted);">📞 ${c.phone}</span>
+    </div>
+    ${c.plan!=='peruse'?`
+      <div class="plan-bars" style="margin-bottom:20px;">
+        <div class="plan-bar-row">
+          <div class="pbar-label"><span class="pbar-title">KG Used</span><span class="pbar-count">${c.kgUsed} / ${c.kgLimit} kg</span></div>
+          <div class="pbar-track"><div class="pbar-fill ${c.kgUsed/c.kgLimit>0.8?'danger':'safe'}" style="width:${Math.min(c.kgUsed/c.kgLimit*100,100)}%"></div></div>
+        </div>
+        <div class="plan-bar-row" style="margin-top:10px;">
+          <div class="pbar-label"><span class="pbar-title">Pickups Used</span><span class="pbar-count">${c.pickupsUsed} / ${c.pickupLimit}</span></div>
+          <div class="pbar-track"><div class="pbar-fill ${c.pickupsUsed/c.pickupLimit>0.8?'danger':'safe'}" style="width:${Math.min(c.pickupsUsed/c.pickupLimit*100,100)}%"></div></div>
+        </div>
+      </div>
+    `:''}
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Order History</div>
+    ${orders.length===0?'<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No orders yet</div></div>':
+      orders.map(o=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F5F5F5;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">#${o.id} — ${o.type} · ${o.kg}kg</div>
+            <div style="font-size:11px;color:var(--muted);">${o.pickupDate} → ${o.deliveryDate}</div>
+            ${o.note?`<div style="font-size:11px;color:var(--blue);">💬 ${o.note}</div>`:''}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;">₹${o.amount}</div>
+            <div class="badge ${o.status}" style="margin-top:4px;">${o.status}</div>
+          </div>
+        </div>
+      `).join('')}
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-primary btn-sm" onclick="closeModal();document.querySelector('.nav-tab:nth-child(4)').click()">New Order</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+    </div>
+  `;
+  openModal(html);
+}
+
+function openAddCustomer(){
+  const html=`
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Add New Customer</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Full Name</label><input type="text" id="nc_name" placeholder="e.g. Rahul Shah"></div>
+      <div class="form-group"><label>Phone Number</label><input type="text" id="nc_phone" placeholder="10-digit number"></div>
+      <div class="form-group"><label>Area</label><input type="text" id="nc_area" placeholder="e.g. Gurukul"></div>
+      <div class="form-group full">
+        <label>Plan</label>
+        <select id="nc_plan">
+          <option value="peruse">Per Use (₹50/kg)</option>
+          <option value="monthly">Monthly Basic (₹599 — 12kg, 4 pickups)</option>
+          <option value="monthly_plus">Monthly Plus (₹899 — 20kg, 6 pickups)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="submitAddCustomer()">Add Customer →</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  openModal(html);
+}
+
+function submitAddCustomer(){
+  const name=document.getElementById('nc_name').value.trim();
+  const phone=document.getElementById('nc_phone').value.trim();
+  const area=document.getElementById('nc_area').value.trim();
+  const plan=document.getElementById('nc_plan').value;
+  if(!name||!phone||!area){showToast('❌ Fill all fields');return;}
+  if(DB.customers.find(c=>c.phone===phone)){showToast('❌ Phone already registered');return;}
+  const limits={peruse:{kg:0,pk:0},monthly:{kg:12,pk:4},monthly_plus:{kg:20,pk:6}};
+  DB.customers.push({
+    id:DB.customers.length+1, name, phone, area, plan,
+    planStart:plan!=='peruse'?'2026-06-06':null,
+    kgUsed:0, pickupsUsed:0,
+    kgLimit:limits[plan].kg, pickupLimit:limits[plan].pk,
+    balance:0, active:true
+  });
+  closeModal();
+  showToast(`✅ ${name} added successfully!`);
+  renderCustomers();
+}
+
+function openModal(html){
+  document.getElementById('modalContent').innerHTML=html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+// ════════════════════════════════════════════
+// CUSTOMER PORTAL
+// ════════════════════════════════════════════
+function renderCustomerPortal(){
+  const c=DB.customers.find(x=>x.id===currentUser.id);
+  const activeOrder=DB.orders.find(o=>o.customerId===c.id&&['pending','pickup','washing'].includes(o.status));
+  const kgLeft=c.plan!=='peruse'?c.kgLimit-c.kgUsed:0;
+  const pkLeft=c.plan!=='peruse'?c.pickupLimit-c.pickupsUsed:0;
+  const renewDate=c.planStart?new Date(new Date(c.planStart).getTime()+30*864e5).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'-';
+
+  setView(`
+    <div class="portal-hero">
+      <div class="portal-greeting">Welcome back 👋</div>
+      <div class="portal-name">${c.name}</div>
+      <div class="portal-stats">
+        <div class="portal-stat">
+          <div class="ps-label">KG Remaining</div>
+          <div class="ps-val gold">${c.plan!=='peruse'?kgLeft+'kg':'Pay/Use'}</div>
+          <div class="ps-sub">${c.plan!=='peruse'?`of ${c.kgLimit}kg total`:''}</div>
+        </div>
+        <div class="portal-stat">
+          <div class="ps-label">Pickups Left</div>
+          <div class="ps-val">${c.plan!=='peruse'?pkLeft:'-'}</div>
+          <div class="ps-sub">${c.plan!=='peruse'?`of ${c.pickupLimit} this month`:''}</div>
+        </div>
+        <div class="portal-stat">
+          <div class="ps-label">Plan Renewal</div>
+          <div class="ps-val" style="font-size:16px;">${c.plan!=='peruse'?renewDate:'N/A'}</div>
+          <div class="ps-sub">${c.plan!=='peruse'?'Auto renew date':''}</div>
+        </div>
+      </div>
+    </div>
+
+    ${activeOrder?`
+      <div class="notify" style="background:#E3F2FD;border-color:#90CAF9;">
+        <div class="notify-icon">🔄</div>
+        <div class="notify-text" style="color:#0D47A1;">
+          <strong>Active Order #${activeOrder.id}</strong> — ${activeOrder.type} · ${activeOrder.kg}kg<br>
+          Status: <strong>${activeOrder.status.toUpperCase()}</strong> · Expected delivery: ${activeOrder.deliveryDate}
+        </div>
+      </div>
+    `:''}
+
+    ${c.plan!=='peruse'?`
+      <div class="plan-card">
+        <div class="plan-header">
+          <div>
+            <div class="plan-name">${c.plan==='monthly_plus'?'Monthly Plus Plan':'Monthly Basic Plan'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Renews ${renewDate}</div>
+          </div>
+          <div class="plan-price">${c.plan==='monthly_plus'?'₹899':'₹599'}<span>/month</span></div>
+        </div>
+        <div class="plan-bars">
+          <div class="plan-bar-row">
+            <div class="pbar-label">
+              <span class="pbar-title">KG Used this month</span>
+              <span class="pbar-count">${c.kgUsed}kg used · <strong style="color:${kgLeft<=2?'var(--red)':'var(--green)'};">${kgLeft}kg remaining</strong></span>
+            </div>
+            <div class="pbar-track">
+              <div class="pbar-fill ${kgLeft<=2?'danger':'safe'}" style="width:${Math.min(c.kgUsed/c.kgLimit*100,100)}%"></div>
+            </div>
+          </div>
+          <div class="plan-bar-row" style="margin-top:10px;">
+            <div class="pbar-label">
+              <span class="pbar-title">Pickups Used</span>
+              <span class="pbar-count">${c.pickupsUsed} used · <strong style="color:${pkLeft===0?'var(--red)':pkLeft===1?'var(--orange)':'var(--green)'};">${pkLeft} remaining</strong></span>
+            </div>
+            <div class="pbar-track">
+              <div class="pbar-fill ${pkLeft===0?'danger':'safe'}" style="width:${Math.min(c.pickupsUsed/c.pickupLimit*100,100)}%"></div>
+            </div>
+          </div>
+        </div>
+        ${kgLeft<=2?`<div style="margin-top:12px;font-size:11px;color:var(--red);font-weight:600;">⚠️ Almost out of KG! Extra usage: ₹45/kg (Wash+Fold) or ₹65/kg (Wash+Iron)</div>`:''}
+        ${pkLeft===0?`<div style="margin-top:8px;font-size:11px;color:var(--red);font-weight:600;">⚠️ No pickups left! Extra pickup: ₹49 each</div>`:''}
+      </div>
+    `:`
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-name">Per Use Plan</div>
+          <div style="font-size:12px;color:var(--muted);">You pay per order</div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);">Wash+Fold: ₹50/kg &nbsp;·&nbsp; Wash+Iron: ₹70/kg</div>
+        ${c.balance>0?`<div style="margin-top:10px;font-size:13px;font-weight:700;color:var(--green);">Balance: ₹${c.balance} prepaid</div>`:''}
+      </div>
+    `}
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Book a Pickup</div>
+      </div>
+      <div class="card-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Send a WhatsApp message to book your next pickup:</div>
+        <a href="https://wa.me/919106062508?text=Hi%20KleenKo!%20I%20want%20to%20book%20a%20pickup%20-%20${encodeURIComponent(c.name)}" target="_blank">
+          <button class="btn btn-primary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <span>📱</span> WhatsApp KleenKo — +91 91060 62508
+          </button>
+        </a>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">Pickup days: Monday & Thursday · 8AM – 8PM</div>
+      </div>
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════
+// CUSTOMER — HISTORY
+// ════════════════════════════════════════════
+function renderHistory(){
+  const c=DB.customers.find(x=>x.id===currentUser.id);
+  const orders=[...DB.orders.filter(o=>o.customerId===c.id)].sort((a,b)=>b.id-a.id);
+  const totalSpent=orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.amount,0);
+  const totalKg=orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+o.kg,0);
+
+  setView(`
+    <div class="page-header">
+      <div class="page-title">My Order History</div>
+      <div class="page-sub">${orders.length} orders · ₹${totalSpent} total · ${totalKg}kg washed</div>
+    </div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-val">${orders.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-val gold">₹${totalSpent}</div></div>
+      <div class="stat-card"><div class="stat-label">Total KG Washed</div><div class="stat-val green">${totalKg}kg</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">All Orders</div></div>
+      <div class="card-body">
+        ${orders.length===0?`<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No orders yet. Book your first pickup!</div></div>`:''}
+        ${orders.map(o=>`
+          <div class="history-row">
+            <div class="history-icon ${o.status==='delivered'?'deliver':o.status==='washing'?'wash':'pickup'}">
+              ${o.status==='delivered'?'✅':o.status==='washing'?'🧺':'📦'}
+            </div>
+            <div class="history-info">
+              <div class="history-title">#${o.id} — ${o.type}</div>
+              <div class="history-date">Pickup: ${o.pickupDate} · Delivery: ${o.deliveryDate}</div>
+              ${o.note?`<div style="font-size:11px;color:var(--blue);margin-top:2px;">💬 ${o.note}</div>`:''}
+            </div>
+            <div class="history-right">
+              <div class="history-kg">${o.kg}kg · ${o.amount>0?'₹'+o.amount:'Included'}</div>
+              <div class="badge ${o.status}" style="margin-top:4px;">${o.status.toUpperCase()}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
